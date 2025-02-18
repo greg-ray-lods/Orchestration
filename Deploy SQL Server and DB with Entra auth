@@ -22,7 +22,11 @@
             "apiVersion": "2019-06-01-preview",
             "name": "[parameters('serverName')]",
             "location": "[parameters('serverLocation')]",
-            "identity": { "type": "SystemAssigned" }
+            "identity": { "type": "SystemAssigned" },
+            "properties": {
+                "administratorLogin": null,
+                "administratorLoginPassword": null
+            }
         },
         {
             "type": "Microsoft.Sql/servers/administrators",
