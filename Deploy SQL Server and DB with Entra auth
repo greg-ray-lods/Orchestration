@@ -1,0 +1,61 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "collation": { "type": "string" },
+        "databaseName": { "type": "string" },
+        "tier": { "type": "string" },
+        "skuName": { "type": "string" },
+        "maxSizeBytes": { "type": "int" },
+        "serverName": { "type": "string", "defaultValue": "sql40818153" },
+        "serverLocation": { "type": "string" },
+        "adminLoginName": { "type": "string" },
+        "adminObjectId": { "type": "string" },
+        "requestedBackupStorageRedundancy": { "type": "string", "defaultValue": "Geo" },
+        "enableSqlLedger": { "type": "bool", "defaultValue": false },
+        "availabilityZone": { "type": "string", "defaultValue": "NoPreference" },
+        "useFreeLimit": { "type": "bool", "defaultValue": false }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Sql/servers",
+            "apiVersion": "2019-06-01-preview",
+            "name": "[parameters('serverName')]",
+            "location": "[parameters('serverLocation')]",
+            "identity": { "type": "SystemAssigned" }
+        },
+        {
+            "type": "Microsoft.Sql/servers/administrators",
+            "apiVersion": "2020-11-01-preview",
+            "name": "[concat(parameters('serverName'), '/activeDirectory')]",
+            "dependsOn": ["[resourceId('Microsoft.Sql/servers', parameters('serverName'))]"] ,
+            "properties": {
+                "administratorType": "ActiveDirectory",
+                "login": "[parameters('adminLoginName')]",
+                "sid": "[parameters('adminObjectId')]",
+                "tenantId": "[subscription().tenantId]"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases",
+            "apiVersion": "2022-08-01-preview",
+            "location": "[parameters('serverLocation')]",
+            "name": "[concat(parameters('serverName'), '/', parameters('databaseName'))]",
+            "properties": {
+                "collation": "[parameters('collation')]",
+                "maxSizeBytes": "[parameters('maxSizeBytes')]",
+                "zoneRedundant": false,
+                "licenseType": "LicenseIncluded",
+                "readScale": "Disabled",
+                "requestedBackupStorageRedundancy": "[parameters('requestedBackupStorageRedundancy')]",
+                "isLedgerOn": "[parameters('enableSqlLedger')]",
+                "availabilityZone": "[parameters('availabilityZone')]",
+                "useFreeLimit": "[parameters('useFreeLimit')]"
+            },
+            "sku": {
+                "name": "[parameters('skuName')]",
+                "tier": "[parameters('tier')]"
+            }
+        }
+    ]
+}
